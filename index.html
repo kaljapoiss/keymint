@@ -1,0 +1,892 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Keymint — secure generator</title>
+  <link rel="icon" href="logo.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;500;600&family=JetBrains+Mono:wght@400;600&family=Orbitron:wght@500;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+  <noscript><link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;500;600&family=JetBrains+Mono:wght@400;600&family=Orbitron:wght@500;700&display=swap" rel="stylesheet"></noscript>
+  <style>
+    :root {
+      --bg: #05060a;
+      --bg-elevated: #0a0d14;
+      --surface: rgba(12, 16, 28, 0.72);
+      --surface-hover: rgba(20, 28, 48, 0.85);
+      --border: rgba(99, 130, 255, 0.22);
+      --border-bright: rgba(34, 211, 238, 0.45);
+      --text: #eef2ff;
+      --muted: #7b8ab8;
+      --cyan: #22d3ee;
+      --violet: #818cf8;
+      --magenta: #e879f9;
+      --accent: #38bdf8;
+      --accent-dim: rgba(56, 189, 248, 0.15);
+      --success: #34d399;
+      --warning: #fbbf24;
+      --danger: #fb7185;
+      --radius: 14px;
+      --glow: 0 0 40px rgba(34, 211, 238, 0.12), 0 0 80px rgba(129, 140, 248, 0.08);
+      --font-ui: 'Exo 2', system-ui, sans-serif;
+      --font-brand: 'Orbitron', system-ui, sans-serif;
+      --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--font-ui);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      line-height: 1.5;
+      overflow-x: hidden;
+    }
+
+    .bg-grid {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      background:
+        linear-gradient(rgba(34, 211, 238, 0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(34, 211, 238, 0.04) 1px, transparent 1px);
+      background-size: 48px 48px;
+      mask-image: radial-gradient(ellipse 90% 80% at 50% 20%, black 20%, transparent 75%);
+    }
+
+    .bg-glow {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      background:
+        radial-gradient(ellipse 70% 45% at 15% 0%, rgba(34, 211, 238, 0.18), transparent 55%),
+        radial-gradient(ellipse 55% 40% at 85% 10%, rgba(232, 121, 249, 0.14), transparent 50%),
+        radial-gradient(ellipse 60% 50% at 50% 100%, rgba(129, 140, 248, 0.12), transparent 55%);
+    }
+
+    .bg-scan {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0.04;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(255, 255, 255, 0.5) 2px,
+        rgba(255, 255, 255, 0.5) 3px
+      );
+    }
+
+    .wrap {
+      position: relative;
+      z-index: 1;
+      max-width: 740px;
+      margin: 0 auto;
+      padding: 2rem 1.25rem 4rem;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    .brand {
+      display: inline-flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.85rem;
+    }
+
+    .logo-wrap {
+      position: relative;
+      width: 72px;
+      height: 72px;
+    }
+
+    .logo-wrap::before {
+      content: '';
+      position: absolute;
+      inset: -8px;
+      border-radius: 50%;
+      background: conic-gradient(from 180deg, var(--cyan), var(--violet), var(--magenta), var(--cyan));
+      opacity: 0.35;
+      filter: blur(14px);
+      animation: spin 8s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .logo {
+      position: relative;
+      width: 72px;
+      height: 72px;
+      display: block;
+      filter: drop-shadow(0 0 12px rgba(34, 211, 238, 0.5));
+    }
+
+    .brand-text h1 {
+      font-family: var(--font-brand);
+      font-size: 1.85rem;
+      font-weight: 700;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      background: linear-gradient(105deg, var(--cyan) 0%, var(--violet) 45%, var(--magenta) 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .brand-text .tagline {
+      color: var(--muted);
+      font-size: 0.9rem;
+      margin-top: 0.4rem;
+      letter-spacing: 0.04em;
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      margin-top: 0.75rem;
+      padding: 0.25rem 0.65rem;
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--cyan);
+      border: 1px solid rgba(34, 211, 238, 0.35);
+      border-radius: 999px;
+      background: rgba(34, 211, 238, 0.06);
+    }
+
+    .status-pill::before {
+      content: '';
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--cyan);
+      box-shadow: 0 0 8px var(--cyan);
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.35; }
+    }
+
+    .tabs {
+      display: flex;
+      gap: 0.25rem;
+      padding: 0.3rem;
+      margin-bottom: 1.5rem;
+      border-radius: var(--radius);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      backdrop-filter: blur(12px);
+      box-shadow: var(--glow);
+    }
+
+    .tab {
+      flex: 1;
+      padding: 0.7rem 0.5rem;
+      border: none;
+      background: transparent;
+      color: var(--muted);
+      font-family: var(--font-ui);
+      font-size: 0.82rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: color 0.2s, background 0.2s, box-shadow 0.2s;
+    }
+
+    .tab:hover {
+      color: var(--text);
+      background: var(--surface-hover);
+    }
+
+    .tab.active {
+      color: var(--text);
+      background: linear-gradient(135deg, rgba(34, 211, 238, 0.18), rgba(129, 140, 248, 0.18));
+      box-shadow: inset 0 0 0 1px var(--border-bright), 0 0 20px rgba(34, 211, 238, 0.15);
+    }
+
+    .panel { display: none; }
+    .panel.active { display: block; }
+
+    .card {
+      position: relative;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.35rem;
+      backdrop-filter: blur(16px);
+      box-shadow: var(--glow);
+      overflow: hidden;
+    }
+
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--cyan), var(--magenta), transparent);
+      opacity: 0.7;
+    }
+
+    .output-row {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .output {
+      flex: 1;
+      font-family: var(--font-mono);
+      font-size: 0.92rem;
+      padding: 0.9rem 1rem;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--cyan);
+      text-shadow: 0 0 20px rgba(34, 211, 238, 0.25);
+      word-break: break-all;
+      min-height: 2.85rem;
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+      user-select: all;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .output:hover {
+      border-color: var(--border-bright);
+      box-shadow: 0 0 24px rgba(34, 211, 238, 0.12), inset 0 0 30px rgba(34, 211, 238, 0.03);
+    }
+
+    .output.multiline {
+      white-space: pre-line;
+      align-items: flex-start;
+      color: #a5f3fc;
+    }
+
+    .btn {
+      padding: 0.85rem 1rem;
+      border: none;
+      border-radius: 10px;
+      font-family: var(--font-ui);
+      font-size: 0.85rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: transform 0.1s, box-shadow 0.2s, filter 0.2s;
+      white-space: nowrap;
+    }
+
+    .btn:active { transform: scale(0.97); }
+
+    .btn-icon {
+      width: 2.85rem;
+      padding: 0.85rem;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      color: var(--violet);
+    }
+
+    .btn-icon:hover {
+      border-color: var(--border-bright);
+      color: var(--cyan);
+      box-shadow: 0 0 16px rgba(34, 211, 238, 0.2);
+    }
+
+    .btn-icon.copied {
+      border-color: rgba(52, 211, 153, 0.5);
+      color: var(--success);
+      box-shadow: 0 0 16px rgba(52, 211, 153, 0.25);
+    }
+
+    .btn-primary {
+      width: 100%;
+      margin-top: 0.5rem;
+      color: #05060a;
+      background: linear-gradient(105deg, var(--cyan), var(--violet) 55%, var(--magenta));
+      box-shadow: 0 4px 24px rgba(34, 211, 238, 0.25);
+    }
+
+    .btn-primary:hover {
+      filter: brightness(1.1);
+      box-shadow: 0 6px 32px rgba(129, 140, 248, 0.35);
+    }
+
+    .options {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .option-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.75rem 1.25rem;
+    }
+
+    .option-row label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--muted);
+      min-width: 5rem;
+    }
+
+    input[type="range"] {
+      flex: 1;
+      min-width: 120px;
+      accent-color: var(--cyan);
+      height: 6px;
+    }
+
+    .length-val {
+      font-family: var(--font-mono);
+      font-size: 0.88rem;
+      color: var(--violet);
+      min-width: 2ch;
+      text-align: right;
+    }
+
+    .muted-val { color: var(--muted); min-width: auto; }
+
+    .checkboxes {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem 1rem;
+    }
+
+    .check {
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+      font-size: 0.85rem;
+      cursor: pointer;
+      user-select: none;
+      padding: 0.35rem 0.5rem;
+      border-radius: 8px;
+      border: 1px solid transparent;
+      transition: border-color 0.15s, background 0.15s;
+    }
+
+    .check:hover {
+      border-color: var(--border);
+      background: var(--accent-dim);
+    }
+
+    .check input {
+      accent-color: var(--cyan);
+      width: 1rem;
+      height: 1rem;
+    }
+
+    select,
+    .text-input {
+      font-family: var(--font-ui);
+      font-size: 0.875rem;
+      padding: 0.55rem 0.8rem;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--text);
+      flex: 1;
+      min-width: 0;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    select:focus,
+    .text-input:focus {
+      outline: none;
+      border-color: var(--border-bright);
+      box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.12);
+    }
+
+    .strength { margin-top: 0.75rem; font-size: 0.8rem; }
+
+    .strength-bar {
+      height: 5px;
+      background: rgba(99, 130, 255, 0.15);
+      border-radius: 3px;
+      margin-top: 0.35rem;
+      overflow: hidden;
+      box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.4);
+    }
+
+    .strength-fill {
+      height: 100%;
+      border-radius: 3px;
+      transition: width 0.2s, background 0.2s;
+      box-shadow: 0 0 12px currentColor;
+    }
+
+    .strength-label {
+      font-family: var(--font-mono);
+      color: var(--muted);
+      margin-top: 0.3rem;
+      font-size: 0.75rem;
+    }
+
+    .hint {
+      font-size: 0.78rem;
+      color: var(--muted);
+      margin-top: 1rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--border);
+      letter-spacing: 0.02em;
+    }
+
+    kbd {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      padding: 0.12rem 0.4rem;
+      border: 1px solid var(--border-bright);
+      border-radius: 4px;
+      background: rgba(34, 211, 238, 0.08);
+      color: var(--cyan);
+    }
+
+    footer {
+      text-align: center;
+      margin-top: 2rem;
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .logo-wrap::before { animation: none; }
+      .status-pill::before { animation: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-grid" aria-hidden="true"></div>
+  <div class="bg-glow" aria-hidden="true"></div>
+  <div class="bg-scan" aria-hidden="true"></div>
+
+  <div class="wrap">
+    <header>
+      <div class="brand">
+        <div class="logo-wrap">
+          <img class="logo" src="logo.svg" width="72" height="72" alt="">
+        </div>
+        <div class="brand-text">
+          <h1>Keymint</h1>
+          <p class="tagline">Mint passwords · API keys · hostnames</p>
+          <span class="status-pill">Local · Secure · Offline</span>
+        </div>
+      </div>
+    </header>
+
+    <nav class="tabs" role="tablist">
+      <button class="tab active" role="tab" aria-selected="true" data-tab="password">Password</button>
+      <button class="tab" role="tab" aria-selected="false" data-tab="apikey">API key</button>
+      <button class="tab" role="tab" aria-selected="false" data-tab="hostname">Hostname</button>
+    </nav>
+
+    <!-- Password -->
+    <section id="panel-password" class="panel active" role="tabpanel">
+      <div class="card">
+        <div class="output-row">
+          <div class="output" id="out-password" aria-live="polite"></div>
+          <button type="button" class="btn btn-icon" data-copy="out-password" title="Copy" aria-label="Copy password">⎘</button>
+        </div>
+        <div class="options">
+          <div class="option-row">
+            <label for="pw-len">Length</label>
+            <input type="range" id="pw-len" min="8" max="128" value="24">
+            <span class="length-val" id="pw-len-val">24</span>
+          </div>
+          <div class="checkboxes">
+            <label class="check"><input type="checkbox" id="pw-upper" checked> Uppercase (A–Z)</label>
+            <label class="check"><input type="checkbox" id="pw-lower" checked> Lowercase (a–z)</label>
+            <label class="check"><input type="checkbox" id="pw-digits" checked> Numbers (0–9)</label>
+            <label class="check"><input type="checkbox" id="pw-symbols" checked> Symbols (!@#$…)</label>
+          </div>
+        </div>
+        <div class="strength">
+          <div class="strength-bar"><div class="strength-fill" id="pw-strength-bar"></div></div>
+          <div class="strength-label" id="pw-strength-label">—</div>
+        </div>
+        <button type="button" class="btn btn-primary" id="btn-regen-password">New password</button>
+        <p class="hint">Click the result or press <kbd>R</kbd> to regenerate. Uses crypto.getRandomValues.</p>
+      </div>
+    </section>
+
+    <!-- API key -->
+    <section id="panel-apikey" class="panel" role="tabpanel" hidden>
+      <div class="card">
+        <div class="output-row">
+          <div class="output" id="out-apikey" aria-live="polite"></div>
+          <button type="button" class="btn btn-icon" data-copy="out-apikey" title="Copy" aria-label="Copy API key">⎘</button>
+        </div>
+        <div class="options">
+          <div class="option-row">
+            <label for="key-format">Format</label>
+            <select id="key-format">
+              <option value="hex64">Hex (64 chars) — sk_live_…</option>
+              <option value="hex32">Hex (32 chars)</option>
+              <option value="base64url">Base64URL (43 chars)</option>
+              <option value="uuid">UUID v4</option>
+              <option value="prefixed">With prefix (keymint_ + hex)</option>
+            </select>
+          </div>
+          <div class="option-row" id="prefix-row" style="display: none;">
+            <label for="key-prefix">Prefix</label>
+            <input type="text" id="key-prefix" class="text-input" value="keymint_" maxlength="32">
+          </div>
+        </div>
+        <button type="button" class="btn btn-primary" id="btn-regen-apikey">New key</button>
+        <p class="hint">Click the result or press <kbd>R</kbd> to regenerate.</p>
+      </div>
+    </section>
+
+    <!-- Hostname -->
+    <section id="panel-hostname" class="panel" role="tabpanel" hidden>
+      <div class="card">
+        <div class="output-row">
+          <div class="output multiline" id="out-hostname" aria-live="polite"></div>
+          <button type="button" class="btn btn-icon" data-copy="out-hostname" title="Copy" aria-label="Copy hostnames">⎘</button>
+        </div>
+        <div class="options">
+          <div class="option-row">
+            <label for="name-style">Style</label>
+            <select id="name-style">
+              <option value="nouns">nouns (falcon, prism)</option>
+              <option value="animals">animals (wolf, hawk)</option>
+              <option value="mythology">mythology (atlas, thor)</option>
+              <option value="tech">technical (node, relay)</option>
+              <option value="mixed">mixed (any category)</option>
+            </select>
+          </div>
+          <div class="option-row">
+            <label for="name-count">Count</label>
+            <input type="range" id="name-count" min="1" max="24" value="5">
+            <span class="length-val" id="name-count-val">5</span>
+            <span class="length-val muted-val" id="name-pool-size"></span>
+          </div>
+        </div>
+        <button type="button" class="btn btn-primary" id="btn-regen-hostname">New names</button>
+        <p class="hint">500 unique words per category. No repeats in one batch. Click the result or press <kbd>R</kbd> to regenerate.</p>
+      </div>
+    </section>
+
+    <footer>// generated on-device · zero network calls</footer>
+  </div>
+
+  <script src="words.js"></script>
+  <script>
+    const CHARSET = {
+      upper: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+      lower: 'abcdefghijklmnopqrstuvwxyz',
+      digits: '0123456789',
+      symbols: '!@#$%^&*()-_=+[]{}|;:,.<>?'
+    };
+    const HEX = '0123456789abcdef';
+
+    function dedupePool(words) {
+      return [...new Set(words)];
+    }
+
+    const WORD_POOLS = {
+      nouns: dedupePool(window.HOSTNAME_WORDS.nouns),
+      animals: dedupePool(window.HOSTNAME_WORDS.animals),
+      mythology: dedupePool(window.HOSTNAME_WORDS.mythology),
+      tech: dedupePool(window.HOSTNAME_WORDS.tech),
+      mixed: null
+    };
+    WORD_POOLS.mixed = dedupePool(
+      WORD_POOLS.nouns.concat(WORD_POOLS.animals, WORD_POOLS.mythology, WORD_POOLS.tech)
+    );
+
+    const el = {
+      pwLen: document.getElementById('pw-len'),
+      pwLenVal: document.getElementById('pw-len-val'),
+      pwUpper: document.getElementById('pw-upper'),
+      pwLower: document.getElementById('pw-lower'),
+      pwDigits: document.getElementById('pw-digits'),
+      pwSymbols: document.getElementById('pw-symbols'),
+      outPassword: document.getElementById('out-password'),
+      pwStrengthBar: document.getElementById('pw-strength-bar'),
+      pwStrengthLabel: document.getElementById('pw-strength-label'),
+      keyFormat: document.getElementById('key-format'),
+      keyPrefix: document.getElementById('key-prefix'),
+      prefixRow: document.getElementById('prefix-row'),
+      outApikey: document.getElementById('out-apikey'),
+      nameStyle: document.getElementById('name-style'),
+      nameCount: document.getElementById('name-count'),
+      nameCountVal: document.getElementById('name-count-val'),
+      namePoolSize: document.getElementById('name-pool-size'),
+      outHostname: document.getElementById('out-hostname')
+    };
+
+    let activeTab = 'password';
+    let cachedCharset = '';
+    let hostnameCache = '';
+    const randPool = new Uint32Array(16);
+    let randAt = 16;
+    const bytePool = new Uint8Array(128);
+
+    function randomInt(max) {
+      if (max <= 1) return 0;
+      if (randAt >= randPool.length) {
+        crypto.getRandomValues(randPool);
+        randAt = 0;
+      }
+      return randPool[randAt++] % max;
+    }
+
+    function randomBytes(n) {
+      const buf = n <= bytePool.length ? bytePool.subarray(0, n) : new Uint8Array(n);
+      crypto.getRandomValues(buf);
+      return buf;
+    }
+
+    function toHex(bytes) {
+      let s = '';
+      for (let i = 0; i < bytes.length; i++) {
+        const b = bytes[i];
+        s += HEX[b >> 4] + HEX[b & 15];
+      }
+      return s;
+    }
+
+    function toBase64Url(bytes) {
+      let bin = '';
+      for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+      return btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+    }
+
+    function refreshCharset() {
+      let s = '';
+      if (el.pwUpper.checked) s += CHARSET.upper;
+      if (el.pwLower.checked) s += CHARSET.lower;
+      if (el.pwDigits.checked) s += CHARSET.digits;
+      if (el.pwSymbols.checked) s += CHARSET.symbols;
+      cachedCharset = s;
+      return s;
+    }
+
+    function generatePassword() {
+      const charset = cachedCharset || refreshCharset();
+      const len = +el.pwLen.value;
+      if (!charset) {
+        el.outPassword.textContent = 'Select at least one character set';
+        el.pwStrengthBar.style.width = '0%';
+        el.pwStrengthLabel.textContent = '—';
+        return '';
+      }
+      const bytes = randomBytes(len);
+      const clen = charset.length;
+      const chars = new Array(len);
+      for (let i = 0; i < len; i++) chars[i] = charset[bytes[i] % clen];
+      const pw = chars.join('');
+      el.outPassword.textContent = pw;
+
+      const entropy = pw.length * Math.log2(clen);
+      let pct, text, color;
+      if (entropy < 40) { pct = 25; text = 'Weak'; color = 'var(--danger)'; }
+      else if (entropy < 60) { pct = 50; text = 'Fair'; color = 'var(--warning)'; }
+      else if (entropy < 80) { pct = 75; text = 'Good'; color = 'var(--accent)'; }
+      else { pct = 100; text = 'Strong'; color = 'var(--success)'; }
+      el.pwStrengthBar.style.width = pct + '%';
+      el.pwStrengthBar.style.background = color;
+      el.pwStrengthLabel.textContent = text + ' (~' + Math.round(entropy) + ' bits entropy)';
+      return pw;
+    }
+
+    function generateApiKey() {
+      const format = el.keyFormat.value;
+      let key;
+      switch (format) {
+        case 'hex64':
+          key = 'sk_' + toHex(randomBytes(32));
+          break;
+        case 'hex32':
+          key = toHex(randomBytes(16));
+          break;
+        case 'base64url':
+          key = toBase64Url(randomBytes(32));
+          break;
+        case 'uuid': {
+          const b = randomBytes(16);
+          b[6] = (b[6] & 0x0f) | 0x40;
+          b[8] = (b[8] & 0x3f) | 0x80;
+          const h = toHex(b);
+          key = h.slice(0, 8) + '-' + h.slice(8, 12) + '-' + h.slice(12, 16) + '-' + h.slice(16, 20) + '-' + h.slice(20);
+          break;
+        }
+        default:
+          key = (el.keyPrefix.value || 'keymint_') + toHex(randomBytes(24));
+      }
+      el.outApikey.textContent = key;
+      return key;
+    }
+
+    function getHostnamePool() {
+      return WORD_POOLS[el.nameStyle.value] || WORD_POOLS.mixed;
+    }
+
+    function syncNameCountLimit() {
+      const max = getHostnamePool().length;
+      el.nameCount.max = max;
+      el.namePoolSize.textContent = '(' + max + ' unique)';
+      if (+el.nameCount.value > max) {
+        el.nameCount.value = max;
+        el.nameCountVal.textContent = max;
+      }
+    }
+
+    function pickUniqueHostnames(pool, count) {
+      const available = dedupePool(pool).slice();
+      const take = Math.min(count, available.length);
+      const names = new Array(take);
+      const used = new Set();
+
+      for (let i = 0; i < take; i++) {
+        const idx = randomInt(available.length);
+        const word = available[idx];
+        names[i] = word;
+        used.add(word);
+        available[idx] = available[available.length - 1];
+        available.pop();
+      }
+
+      if (used.size !== take) {
+        return pickUniqueHostnames(pool, count);
+      }
+      return names;
+    }
+
+    function generateHostnames() {
+      syncNameCountLimit();
+      const pool = getHostnamePool();
+      const count = +el.nameCount.value;
+      const names = pickUniqueHostnames(pool, count);
+      hostnameCache = names.join('\n');
+      el.outHostname.textContent = hostnameCache;
+      if (names.length !== new Set(names).size) {
+        return generateHostnames();
+      }
+      return hostnameCache;
+    }
+
+    const generators = {
+      password: generatePassword,
+      apikey: generateApiKey,
+      hostname: generateHostnames
+    };
+
+    function regenActive() {
+      generators[activeTab]();
+    }
+
+    function copyText(text, btn) {
+      if (!text) return;
+      navigator.clipboard.writeText(text).then(() => {
+        btn.classList.add('copied');
+        btn.textContent = '✓';
+        setTimeout(() => {
+          btn.classList.remove('copied');
+          btn.textContent = '⎘';
+        }, 1200);
+      }).catch(() => {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+      });
+    }
+
+    document.querySelectorAll('.tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        activeTab = tab.dataset.tab;
+        document.querySelectorAll('.tab').forEach(t => {
+          t.classList.toggle('active', t === tab);
+          t.setAttribute('aria-selected', t === tab ? 'true' : 'false');
+        });
+        document.querySelectorAll('.panel').forEach(p => {
+          const on = p.id === 'panel-' + activeTab;
+          p.classList.toggle('active', on);
+          p.hidden = !on;
+        });
+        regenActive();
+      });
+    });
+
+    el.pwLen.addEventListener('input', e => { el.pwLenVal.textContent = e.target.value; });
+    el.pwLen.addEventListener('change', generatePassword);
+    ['pw-upper', 'pw-lower', 'pw-digits', 'pw-symbols'].forEach(id => {
+      document.getElementById(id).addEventListener('change', () => {
+        refreshCharset();
+        generatePassword();
+      });
+    });
+
+    el.keyFormat.addEventListener('change', e => {
+      el.prefixRow.style.display = e.target.value === 'prefixed' ? 'flex' : 'none';
+      generateApiKey();
+    });
+    el.keyPrefix.addEventListener('change', () => {
+      if (el.keyFormat.value === 'prefixed') generateApiKey();
+    });
+
+    el.nameCount.addEventListener('input', e => { el.nameCountVal.textContent = e.target.value; });
+    el.nameCount.addEventListener('change', generateHostnames);
+    el.nameStyle.addEventListener('change', () => {
+      syncNameCountLimit();
+      generateHostnames();
+    });
+
+    document.getElementById('btn-regen-password').addEventListener('click', generatePassword);
+    document.getElementById('btn-regen-apikey').addEventListener('click', generateApiKey);
+    document.getElementById('btn-regen-hostname').addEventListener('click', generateHostnames);
+
+    el.outPassword.addEventListener('click', generatePassword);
+    el.outApikey.addEventListener('click', generateApiKey);
+    el.outHostname.addEventListener('click', generateHostnames);
+
+    document.querySelectorAll('[data-copy]').forEach(btn => {
+      btn.addEventListener('click', e => {
+        e.stopPropagation();
+        const id = btn.getAttribute('data-copy');
+        const text = id === 'out-hostname' ? hostnameCache : document.getElementById(id).textContent;
+        copyText(text, btn);
+      });
+    });
+
+    document.addEventListener('keydown', e => {
+      if (e.target.closest('input, select, textarea')) return;
+      if (e.key === 'r' || e.key === 'R') {
+        e.preventDefault();
+        regenActive();
+      }
+    });
+
+    refreshCharset();
+    syncNameCountLimit();
+    generatePassword();
+  </script>
+</body>
+</html>
