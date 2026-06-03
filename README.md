@@ -28,14 +28,15 @@ Regenerate `words.js`:
 node build-words.js
 ```
 
-## Hosting (GitLab Pages)
+## Hosting (GitHub Pages)
 
-This repo includes `.gitlab-ci.yml`. After push to GitLab, enable **Deploy → Pages**.
+Pushes to `main` run `.github/workflows/pages.yml` and deploy the static site.
 
-Project URL (replace namespace if needed):
+Live URL: **https://kaljapoiss.github.io/gennet/**
 
-`https://<gitlab-username>.gitlab.io/gennet/`
+First-time setup in the repo on GitHub:
 
-Pipeline publishes `index.html`, `logo.svg`, and `words.js` only.
+1. **Settings → Pages → Build and deployment** → Source: **GitHub Actions**
+2. Push to `main` (or re-run the workflow under **Actions**)
 
-Custom domain: GitLab project → **Settings → Pages**.
+Custom domain: **Settings → Pages → Custom domain**.
