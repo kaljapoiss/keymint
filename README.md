@@ -32,7 +32,7 @@ node build-words.js
 
 Pushes to `main` run `.github/workflows/pages.yml` and deploy the static site.
 
-Live URL: **https://kaljapoiss.github.io/gennet/**
+Live URL: **https://kaljapoiss.github.io/keymint/**
 
 First-time setup in the repo on GitHub:
 
