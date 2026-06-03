@@ -28,6 +28,14 @@ Regenerate `words.js`:
 node build-words.js
 ```
 
-## Hosting
+## Hosting (GitLab Pages)
 
-Static files only — deploy to GitHub Pages, Cloudflare Pages, or Netlify. Suggested domains: `keymint.xyz`, `keymint.com`.
+This repo includes `.gitlab-ci.yml`. After push to GitLab, enable **Deploy → Pages**.
+
+Project URL (replace namespace if needed):
+
+`https://<gitlab-username>.gitlab.io/gennet/`
+
+Pipeline publishes `index.html`, `logo.svg`, and `words.js` only.
+
+Custom domain: GitLab project → **Settings → Pages**.
